@@ -126,7 +126,7 @@ interface goodTime {
 function msg(g: goodTime): string {
   return `${g.day} is a great day to bike 🚴. Temp: ${
     g.temperature
-  }, Precipitation: ${g.probabilityOfPrecipitation * 100}%m Wind Speed: ${
+  }, Precipitation: ${g.probabilityOfPrecipitation * 100}% Wind Speed: ${
     g.maxWindSpeed
   }`;
 }
