@@ -8,7 +8,7 @@ curl https://api.weather.gov/gridpoints/LWX/97,75/forecast | jq .properties.peri
 */
 
 // Takoma Park
-const FORECAST_URL = "https://api.weather.gov/gridpoints/LWX/97,75/forecast";
+const FORECAST_URL = "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly";
 const PUSHOVER_USER = process.env.PUSHOVER_USER;
 const PUSHOVER_TOKEN = process.env.PUSHOVER_TOKEN;
 
@@ -119,7 +119,6 @@ function withinThreeDays(dateString: string): boolean {
 }
 
 interface goodTime {
-  day: string;
   startTime: string;
   endTime: string;
   temperature: number;
@@ -128,7 +127,7 @@ interface goodTime {
 }
 
 function msg(g: goodTime): string {
-  return `${g.day} is a great day to bike 🚴. Temp: ${
+  return `${g.startTime} is a great time to bike 🚴. Temp: ${
     g.temperature
   }, Precipitation: ${g.probabilityOfPrecipitation * 100}% Wind Speed: ${
     g.maxWindSpeed
@@ -158,7 +157,6 @@ function filterWeather(apiResponse: APIWeatherForecast[]): goodTime[] {
       withinThreeDays(period.startTime)
     ) {
       goodTimesToBike.push({
-        day: period.name,
         startTime: period.startTime,
         endTime: period.endTime,
         temperature: period.temperature,
