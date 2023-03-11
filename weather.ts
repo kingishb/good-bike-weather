@@ -1,51 +1,15 @@
 /*
-About:
-Tells Brian good times to ride his bike with the NWS API and Pushover.
-
-Good to ride bike when:
-    - temp is between 50-80 degrees
-    - not a lot of wind
-    - no precipitation
-    - is daytime
-
-
 Get Takoma Park's weather coords:
 curl -L https://api.weather.gov/points/37.97973,-77.00462
 
 Get Takoma Park's weather forecast 
 curl https://api.weather.gov/gridpoints/AKQ/57,98/forecast | jq .properties.periods returns an array like:
-
-            {
-                "number": 6,
-                "name": "Monday",
-                "startTime": "2023-03-13T06:00:00-04:00",
-                "endTime": "2023-03-13T18:00:00-04:00",
-                "isDaytime": true,
-                "temperature": 52,
-                "temperatureUnit": "F",
-                "temperatureTrend": null,
-                "probabilityOfPrecipitation": {
-                    "unitCode": "wmoUnit:percent",
-                    "value": 80
-                },
-                "dewpoint": {
-                    "unitCode": "wmoUnit:degC",
-                    "value": 6.1111111111111107
-                },
-                "relativeHumidity": {
-                    "unitCode": "wmoUnit:percent",
-                    "value": 100
-                },
-                "windSpeed": "3 to 9 mph",
-                "windDirection": "N",
-                "icon": "https://api.weather.gov/icons/land/day/rain,80/rain,60?size=medium",
-                "shortForecast": "Light Rain",
-                "detailedForecast": "Rain. Mostly cloudy, with a high near 52. Chance of precipitation is 80%. New rainfall amounts between a quarter and half of an inch possible."
-            },
 */
 
 // Takoma Park
 const FORECAST_URL = "https://api.weather.gov/gridpoints/AKQ/57,98/forecast";
+const PUSHOVER_USER = process.env.PUSHOVER_USER;
+const PUSHOVER_TOKEN = process.env.PUSHOVER_TOKEN;
 
 // NOAA API Response
 interface APIWeatherForecast {
@@ -110,6 +74,23 @@ async function getWeather(): Promise<{
   }
 }
 
+async function push(msg: string) {
+  const resp = await fetch("https://api.pushover.net/1/messages.json", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      token: PUSHOVER_TOKEN,
+      user: PUSHOVER_USER,
+      message: msg,
+    }),
+  });
+  if (resp.status > 299) {
+    console.error("pushover failed :(", await resp.text());
+  }
+}
+
 function parseWindSpeed(windString: string) {
   const rangeRegex = /^(?<low>\d+) to (?<high>\d+) mph$/;
   if (windString.match(rangeRegex)) {
@@ -126,7 +107,14 @@ function parseWindSpeed(windString: string) {
   }
 }
 
-interface goodTimes {
+function withinThreeDays(dateString: string): bool {
+  const startTime = Date.parse(dateString);
+  const now = Date.now();
+  const threeDays = 3 * 24 * 60 * 60 * 1000;
+  return startTime < now + threeDays;
+}
+
+interface goodTime {
   day: string;
   startTime: string;
   endTime: string;
@@ -134,15 +122,36 @@ interface goodTimes {
   probabilityOfPrecipitation: number;
   maxWindSpeed: number;
 }
-function filterWeather(apiResponse: APIWeatherForecast[]): goodTimes[] {
-  const goodTimesToBike: goodTimes[] = [];
+
+function msg(g: goodTime): string {
+  return `${g.day} is a great day to bike 🚴. Temp: ${
+    g.temperature
+  }, Precipitation: ${g.probabilityOfPrecipitation * 100}%m Wind Speed: ${
+    g.maxWindSpeed
+  }`;
+}
+
+function alert(times: goodTime[]) {
+  const days: string[] = [];
+  for (const t of times) {
+    days.push(msg(t));
+  }
+  return `😎 Great biking potential in your future! 😎
+  
+  ${days.join("\n")}
+  
+  Make a calendar entry and get out there!`;
+}
+function filterWeather(apiResponse: APIWeatherForecast[]): goodTime[] {
+  const goodTimesToBike: goodTime[] = [];
   for (let period of apiResponse) {
     if (
       period.isDaytime &&
       period.temperature > 50 &&
       period.temperature < 80 &&
       period.probabilityOfPrecipitation.value < 20 &&
-      parseWindSpeed(period.windSpeed).high < 20
+      parseWindSpeed(period.windSpeed).high < 20 &&
+      withinThreeDays(period.startTime)
     ) {
       goodTimesToBike.push({
         day: period.name,
@@ -158,6 +167,10 @@ function filterWeather(apiResponse: APIWeatherForecast[]): goodTimes[] {
 }
 
 async function main() {
+  if (!PUSHOVER_USER || !PUSHOVER_TOKEN) {
+    console.error("PUSHOVER_USER and PUSHOVER_TOKEN required");
+    process.exit(1);
+  }
   const { weather, error } = await getWeather();
   if (error !== "") {
     console.error(error);
@@ -165,7 +178,12 @@ async function main() {
   }
 
   const timesToBike = filterWeather(weather);
-  console.log(timesToBike);
+  if (timesToBike.length > 0) {
+    console.log(timesToBike);
+    await push(alert(timesToBike));
+  } else {
+    console.log("no times found 😭");
+  }
 }
 
 main();
