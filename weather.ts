@@ -3,7 +3,7 @@ Get Takoma Park's weather coords:
 curl -L https://api.weather.gov/points/37.97973,-77.00462
 
 Get Takoma Park's weather forecast 
-curl https://api.weather.gov/gridpoints/AKQ/57,98/forecast | jq .properties.periods returns an array like:
+curl https://api.weather.gov/gridpoints/AKQ/57,98/forecast | jq .properties.periods
 */
 
 // Takoma Park
@@ -149,7 +149,7 @@ function filterWeather(apiResponse: APIWeatherForecast[]): goodTime[] {
       period.isDaytime &&
       period.temperature > 50 &&
       period.temperature < 80 &&
-      period.probabilityOfPrecipitation.value < 20 &&
+      period.probabilityOfPrecipitation.value < 30 &&
       parseWindSpeed(period.windSpeed).high < 20 &&
       withinThreeDays(period.startTime)
     ) {

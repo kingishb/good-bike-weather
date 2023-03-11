@@ -1,17 +1,1 @@
-# weather
-
-Tells me when to go biking.
-
-To install dependencies:
-
-```bash
-bun install
-```
-
-To run:
-
-```bash
-bun run weather.ts
-```
-
-This project was created using `bun init` in bun v0.5.7. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+Github action that tells me when to go biking.
