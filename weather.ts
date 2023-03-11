@@ -90,7 +90,7 @@ async function push(msg: string): Promise<{ error: string }> {
       return { error: await resp.text() };
     }
   } catch (err) {
-    return { error: `error: ${err}`};
+    return { error: `error: ${err}` };
   }
   return { error: null };
 }
