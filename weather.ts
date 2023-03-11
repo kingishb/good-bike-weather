@@ -3,11 +3,10 @@ Get Takoma Park's weather coords:
 38.9823732,-77.0065528
 curl -L https://api.weather.gov/points/38.9823732,-77.0065528
 
-Get Takoma Park's weather forecast 
+Get Takoma Park's weather forecast:
 curl https://api.weather.gov/gridpoints/LWX/97,75/forecast | jq .properties.periods
 */
 
-// Takoma Park
 const FORECAST_URL = "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly";
 const PUSHOVER_USER = process.env.PUSHOVER_USER;
 const PUSHOVER_TOKEN = process.env.PUSHOVER_TOKEN;
@@ -118,7 +117,7 @@ function withinThreeDays(dateString: string): boolean {
   return startTime < now + threeDays;
 }
 
-interface goodTime {
+interface weatherPeriod {
   startTime: string;
   endTime: string;
   temperature: number;
@@ -126,32 +125,32 @@ interface goodTime {
   maxWindSpeed: number;
 }
 
-function msg(g: goodTime): string {
-  return `${g.startTime} is a great time to bike 🚴. Temp: ${
+function msg(g: weatherPeriod): string {
+  return `${g.startTime} - ${g.endTime} is a great time to bike 🚴. Temp: ${
     g.temperature
   }, Precipitation: ${g.probabilityOfPrecipitation * 100}% Wind Speed: ${
     g.maxWindSpeed
   }`;
 }
 
-function alert(times: goodTime[]) {
+function alert(times: weatherPeriod[]) {
   const days: string[] = [];
   for (const t of times) {
     days.push(msg(t));
   }
-  return `😎 Great biking potential in your future! 😎
+  return `😎 Great bike weather in your near future!
   
 ${days.join("\n")}
   
 Make a calendar entry and get out there!`;
 }
-function filterWeather(apiResponse: APIWeatherForecast[]): goodTime[] {
-  const goodTimesToBike: goodTime[] = [];
+function filterWeather(apiResponse: APIWeatherForecast[]): weatherPeriod[] {
+  const goodTimesToBike: weatherPeriod[] = [];
   for (let period of apiResponse) {
     if (
       period.isDaytime &&
       period.temperature > 50 &&
-      period.temperature < 80 &&
+      period.temperature < 85 &&
       period.probabilityOfPrecipitation.value < 30 &&
       parseWindSpeed(period.windSpeed).high < 15 &&
       withinThreeDays(period.startTime)
