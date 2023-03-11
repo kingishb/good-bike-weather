@@ -52,10 +52,8 @@ async function getWeather(): Promise<{
   error: string;
 }> {
   try {
-    // @ts-ignore
     const resp = await fetch(FORECAST_URL);
     const body = await resp.json();
-    // @ts-ignore
     const periods: APIWeatherForecast[] = body.properties.periods;
     if (resp.status > 299) {
       return {
@@ -75,7 +73,7 @@ async function getWeather(): Promise<{
   }
 }
 
-async function push(msg: string): Promise<{ error: any }> {
+async function push(msg: string): Promise<{ error: string }> {
   try {
     const resp = await fetch("https://api.pushover.net/1/messages.json", {
       method: "POST",
@@ -92,7 +90,7 @@ async function push(msg: string): Promise<{ error: any }> {
       return { error: await resp.text() };
     }
   } catch (err) {
-    return { error: err };
+    return { error: `error: ${err}`};
   }
   return { error: null };
 }
