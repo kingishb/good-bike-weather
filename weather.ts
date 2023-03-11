@@ -144,6 +144,7 @@ ${days.join("\n")}
   
 Make a calendar entry and get out there!`;
 }
+
 function filterWeather(apiResponse: APIWeatherForecast[]): weatherPeriod[] {
   const goodTimesToBike: weatherPeriod[] = [];
   for (let period of apiResponse) {
@@ -172,12 +173,14 @@ async function main() {
     console.error("PUSHOVER_USER and PUSHOVER_TOKEN required");
     process.exit(1);
   }
+  console.log("getting weather...")
   let { weather, error } = await getWeather();
   if (error !== "") {
     console.error(error);
     process.exit(1);
   }
 
+  console.log("checking for good weather...")
   const timesToBike = filterWeather(weather);
   if (timesToBike.length > 0) {
     console.log(timesToBike);
