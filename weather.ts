@@ -97,8 +97,8 @@ async function push(msg: string): Promise<{ error: string }> {
 
 function parseWindSpeed(windString: string) {
   const rangeRegex = /^(?<low>\d+) to (?<high>\d+) mph$/;
-  if (windString.match(rangeRegex)) {
-    const match = windString.match(rangeRegex);
+  const match = windString.match(rangeRegex);
+  if (match) {
     return {
       low: parseInt(match?.groups?.low || "0"),
       high: parseInt(match?.groups?.high || "0"),
@@ -141,9 +141,9 @@ function alert(times: goodTime[]) {
   }
   return `😎 Great biking potential in your future! 😎
   
-  ${days.join("\n")}
+${days.join("\n")}
   
-  Make a calendar entry and get out there!`;
+Make a calendar entry and get out there!`;
 }
 function filterWeather(apiResponse: APIWeatherForecast[]): goodTime[] {
   const goodTimesToBike: goodTime[] = [];
