@@ -23,5 +23,8 @@ jobs:
         run: bun install
           
       - name: execute js script 
+        env: 
+          PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
+          PUSHOVER_TOKEN: $${ secrets.PUSHOVER_TOKEN }}
         run: bun run weather.ts
           
