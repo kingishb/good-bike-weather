@@ -5,6 +5,7 @@ curl -L https://api.weather.gov/points/37.97973,-77.00462
 Get Takoma Park's weather forecast 
 curl https://api.weather.gov/gridpoints/AKQ/57,98/forecast | jq .properties.periods
 */
+
 // Takoma Park
 const FORECAST_URL = "https://api.weather.gov/gridpoints/AKQ/57,98/forecast";
 const PUSHOVER_USER = process.env.PUSHOVER_USER;
