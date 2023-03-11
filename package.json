@@ -9,7 +9,7 @@
   "author": "Brian",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^18.15.0",
     "bun-types": "^0.5.0"
-  },
-  "dependencies": {}
+  }
 }

@@ -1,13 +1,14 @@
 /*
 Get Takoma Park's weather coords:
-curl -L https://api.weather.gov/points/37.97973,-77.00462
+38.9823732,-77.0065528
+curl -L https://api.weather.gov/points/38.9823732,-77.0065528
 
 Get Takoma Park's weather forecast 
-curl https://api.weather.gov/gridpoints/AKQ/57,98/forecast | jq .properties.periods
+curl https://api.weather.gov/gridpoints/LWX/97,75/forecast | jq .properties.periods
 */
 
 // Takoma Park
-const FORECAST_URL = "https://api.weather.gov/gridpoints/AKQ/57,98/forecast";
+const FORECAST_URL = "https://api.weather.gov/gridpoints/LWX/97,75/forecast";
 const PUSHOVER_USER = process.env.PUSHOVER_USER;
 const PUSHOVER_TOKEN = process.env.PUSHOVER_TOKEN;
 
