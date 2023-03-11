@@ -148,6 +148,7 @@ function alert(times: goodTime[]) {
   Make a calendar entry and get out there!`;
 }
 function filterWeather(apiResponse: APIWeatherForecast[]): goodTime[] {
+  push("hi!");
   const goodTimesToBike: goodTime[] = [];
   for (let period of apiResponse) {
     if (
