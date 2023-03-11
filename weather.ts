@@ -107,7 +107,7 @@ function parseWindSpeed(windString: string) {
   }
 }
 
-function withinThreeDays(dateString: string): bool {
+function withinThreeDays(dateString: string): boolean {
   const startTime = Date.parse(dateString);
   const now = Date.now();
   const threeDays = 3 * 24 * 60 * 60 * 1000;
