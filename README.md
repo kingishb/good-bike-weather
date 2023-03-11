@@ -1,5 +1,7 @@
 # weather
 
+Tells me when to go biking.
+
 To install dependencies:
 
 ```bash
