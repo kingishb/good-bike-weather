@@ -174,7 +174,7 @@ async function main() {
   const { weather, error } = await getWeather();
   if (error !== "") {
     console.error(error);
-    return;
+    process.exit(1);
   }
 
   const timesToBike = filterWeather(weather);
