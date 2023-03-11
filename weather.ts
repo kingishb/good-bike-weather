@@ -153,7 +153,7 @@ function filterWeather(apiResponse: APIWeatherForecast[]): goodTime[] {
       period.temperature > 50 &&
       period.temperature < 80 &&
       period.probabilityOfPrecipitation.value < 30 &&
-      parseWindSpeed(period.windSpeed).high < 20 &&
+      parseWindSpeed(period.windSpeed).high < 15 &&
       withinThreeDays(period.startTime)
     ) {
       goodTimesToBike.push({
