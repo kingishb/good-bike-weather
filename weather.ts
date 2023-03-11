@@ -74,21 +74,26 @@ async function getWeather(): Promise<{
   }
 }
 
-async function push(msg: string) {
-  const resp = await fetch("https://api.pushover.net/1/messages.json", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      token: PUSHOVER_TOKEN,
-      user: PUSHOVER_USER,
-      message: msg,
-    }),
-  });
-  if (resp.status > 299) {
-    console.error("pushover failed :(", await resp.text());
+async function push(msg: string): Promise<{ error: any }> {
+  try {
+    const resp = await fetch("https://api.pushover.net/1/messages.json", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        token: PUSHOVER_TOKEN,
+        user: PUSHOVER_USER,
+        message: msg,
+      }),
+    });
+    if (resp.status > 299) {
+      return { error: await resp.text() };
+    }
+  } catch (err) {
+    return { error: err };
   }
+  return { error: null };
 }
 
 function parseWindSpeed(windString: string) {
@@ -171,7 +176,7 @@ async function main() {
     console.error("PUSHOVER_USER and PUSHOVER_TOKEN required");
     process.exit(1);
   }
-  const { weather, error } = await getWeather();
+  let { weather, error } = await getWeather();
   if (error !== "") {
     console.error(error);
     process.exit(1);
@@ -180,7 +185,11 @@ async function main() {
   const timesToBike = filterWeather(weather);
   if (timesToBike.length > 0) {
     console.log(timesToBike);
-    await push(alert(timesToBike));
+    let { error } = await push(alert(timesToBike));
+    if (error) {
+      console.error(error);
+      process.exit(1);
+    }
   } else {
     console.log("no times found 😭");
   }
