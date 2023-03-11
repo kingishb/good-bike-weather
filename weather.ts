@@ -138,7 +138,7 @@ function alert(times: weatherPeriod[]) {
   for (const t of times) {
     days.push(msg(t));
   }
-  return `😎 Great bike weather in your near future!
+  return `🚲☀️ Great bike weather in your near future!
   
 ${days.join("\n")}
   
