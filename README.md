@@ -1,4 +1,4 @@
-![](screenshot.jpg | width=100)
+<img src="screenshot.jpg" width=300/>
 
 Github action that tells me when to go biking.
 
