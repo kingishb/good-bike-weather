@@ -1,18 +1,10 @@
-/*
-Get Takoma Park's weather coords:
-38.9823732,-77.0065528
-curl -L https://api.weather.gov/points/38.9823732,-77.0065528
-
-Get Takoma Park's weather forecast:
-curl https://api.weather.gov/gridpoints/LWX/97,75/forecast | jq .properties.periods
-*/
-
-const FORECAST_URL = "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly";
+const FORECAST_URL =
+  "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly";
 const PUSHOVER_USER = process.env.PUSHOVER_USER;
 const PUSHOVER_TOKEN = process.env.PUSHOVER_TOKEN;
+const USER_AGENT = "github.com/kingishb/good-bike-weather";
 
-// NOAA API Response
-interface APIWeatherForecast {
+interface WeatherForecast {
   number: number;
   name: string;
   startTime: string;
@@ -47,13 +39,15 @@ interface RelativeHumidity {
 }
 
 async function getWeather(): Promise<{
-  weather: APIWeatherForecast[];
+  weather: WeatherForecast[];
   error: string;
 }> {
   try {
-    const resp = await fetch(FORECAST_URL);
+    const resp = await fetch(FORECAST_URL, {
+      headers: { "User-Agent": USER_AGENT },
+    });
     const body = await resp.json();
-    const periods: APIWeatherForecast[] = body.properties.periods;
+    const periods: WeatherForecast[] = body.properties.periods;
     if (resp.status > 299) {
       return {
         weather: [],
@@ -126,7 +120,7 @@ interface weatherPeriod {
 }
 
 function msg(g: weatherPeriod): string {
-  return `${g.startTime} - ${g.endTime} is a great time to bike 🚴. Temp: ${
+  return `🚴 ${g.startTime} - ${g.endTime}  Temp: ${
     g.temperature
   }, Precipitation: ${g.probabilityOfPrecipitation * 100}% Wind Speed: ${
     g.maxWindSpeed
@@ -145,16 +139,16 @@ ${days.join("\n")}
 Make a calendar entry and get out there!`;
 }
 
-function filterWeather(apiResponse: APIWeatherForecast[]): weatherPeriod[] {
+function filterWeather(forecast: WeatherForecast[]): weatherPeriod[] {
   const goodTimesToBike: weatherPeriod[] = [];
-  for (let period of apiResponse) {
+  for (let period of forecast) {
     if (
       period.isDaytime &&
       period.temperature > 50 &&
       period.temperature < 85 &&
       period.probabilityOfPrecipitation.value < 30 &&
-      parseWindSpeed(period.windSpeed).high < 15 &&
-      withinThreeDays(period.startTime)
+      parseWindSpeed(period.windSpeed).high < 15 // &&
+      // withinThreeDays(period.startTime)
     ) {
       goodTimesToBike.push({
         startTime: period.startTime,
@@ -173,14 +167,14 @@ async function main() {
     console.error("PUSHOVER_USER and PUSHOVER_TOKEN required");
     process.exit(1);
   }
-  console.log("getting weather...")
+  console.log("getting weather...");
   let { weather, error } = await getWeather();
   if (error !== "") {
     console.error(error);
     process.exit(1);
   }
 
-  console.log("checking for good weather...")
+  console.log("checking for good weather...");
   const timesToBike = filterWeather(weather);
   if (timesToBike.length > 0) {
     console.log(timesToBike);
