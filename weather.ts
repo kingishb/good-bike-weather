@@ -104,10 +104,10 @@ function parseWindSpeed(windString: string) {
   }
 }
 
-function withinThreeDays(dateString: string): boolean {
+function withinFiveDays(dateString: string): boolean {
   const startTime = Date.parse(dateString);
   const now = Date.now();
-  const threeDays = 3 * 24 * 60 * 60 * 1000;
+  const threeDays = 5 * 24 * 60 * 60 * 1000;
   return startTime < now + threeDays;
 }
 
@@ -119,12 +119,18 @@ interface weatherPeriod {
   maxWindSpeed: number;
 }
 
+function fmt(s: string): string {
+  return new Date(Date.parse(s)).toLocaleString("en-US", {
+    timeZone: "America/New_York",
+  });
+}
+
 function msg(g: weatherPeriod): string {
-  return `🚴 ${g.startTime} - ${g.endTime}  Temp: ${
+  return `🚴 ${fmt(g.startTime)} - ${fmt(g.endTime)}: Temp: ${
     g.temperature
-  }, Precipitation: ${g.probabilityOfPrecipitation * 100}% Wind Speed: ${
+  } F, Precipitation: ${g.probabilityOfPrecipitation}% Wind Speed: ${
     g.maxWindSpeed
-  }`;
+  } mph`;
 }
 
 function alert(times: weatherPeriod[]) {
@@ -132,7 +138,7 @@ function alert(times: weatherPeriod[]) {
   for (const t of times) {
     days.push(msg(t));
   }
-  return `🚲☀️ Great bike weather in your near future!
+  return `☀️  Great bike weather coming up! 🚲
   
 ${days.join("\n")}
   
@@ -140,26 +146,47 @@ Make a calendar entry and get out there!`;
 }
 
 function filterWeather(forecast: WeatherForecast[]): weatherPeriod[] {
-  const goodTimesToBike: weatherPeriod[] = [];
+  const timePeriods: weatherPeriod[] = [];
   for (let period of forecast) {
     if (
       period.isDaytime &&
       period.temperature > 50 &&
       period.temperature < 85 &&
       period.probabilityOfPrecipitation.value < 30 &&
-      parseWindSpeed(period.windSpeed).high < 15 // &&
-      // withinThreeDays(period.startTime)
+      parseWindSpeed(period.windSpeed).high < 15 &&
+      withinFiveDays(period.startTime)
     ) {
-      goodTimesToBike.push({
-        startTime: period.startTime,
-        endTime: period.endTime,
-        temperature: period.temperature,
-        probabilityOfPrecipitation: period.probabilityOfPrecipitation.value,
-        maxWindSpeed: parseWindSpeed(period.windSpeed).high,
-      });
+
+      // merge together the hourly forecasts with desirable properties to get
+      // a time range
+      const prev = timePeriods[timePeriods.length - 1];
+      if (prev?.endTime === period.startTime) {
+        timePeriods[timePeriods.length - 1] = {
+          startTime: prev.startTime,
+          endTime: period.endTime,
+          temperature: Math.max(period.temperature, prev.temperature),
+          probabilityOfPrecipitation: Math.max(
+            period.probabilityOfPrecipitation.value,
+            prev.probabilityOfPrecipitation
+          ),
+          maxWindSpeed: Math.max(
+            parseWindSpeed(period.windSpeed).high,
+            prev.maxWindSpeed
+          ),
+        };
+      } else {
+        timePeriods.push({
+          startTime: period.startTime,
+          endTime: period.endTime,
+          temperature: period.temperature,
+          probabilityOfPrecipitation: period.probabilityOfPrecipitation.value,
+          maxWindSpeed: parseWindSpeed(period.windSpeed).high,
+        });
+      }
     }
   }
-  return goodTimesToBike;
+
+  return timePeriods;
 }
 
 async function main() {
