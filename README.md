@@ -1,4 +1,4 @@
-![](screenshot.png)
+![](screenshot.jpg)
 
 Github action that tells me when to go biking.
 
