@@ -1,7 +1,10 @@
-const FORECAST_URL =
+// See https://www.weather.gov/documentation/services-web-api for how to find
+// your grid coordinates
+const TAKOMA_PARK_FORECAST_URL =
   "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly";
 const PUSHOVER_USER = process.env.PUSHOVER_USER;
 const PUSHOVER_TOKEN = process.env.PUSHOVER_TOKEN;
+// NOAA asks to identify an application with a unique user agent.
 const USER_AGENT = "github.com/kingishb/good-bike-weather";
 
 interface WeatherForecast {
@@ -43,7 +46,7 @@ async function getWeather(): Promise<{
   error: string;
 }> {
   try {
-    const resp = await fetch(FORECAST_URL, {
+    const resp = await fetch(TAKOMA_PARK_FORECAST_URL, {
       headers: { "User-Agent": USER_AGENT },
     });
     const body = await resp.json();
@@ -85,7 +88,7 @@ async function push(msg: string): Promise<{ error: string }> {
   } catch (err) {
     return { error: `error: ${err}` };
   }
-  return { error: null };
+  return { error: "" };
 }
 
 function parseWindSpeed(windString: string) {
@@ -156,7 +159,6 @@ function filterWeather(forecast: WeatherForecast[]): weatherPeriod[] {
       parseWindSpeed(period.windSpeed).high < 15 &&
       withinFiveDays(period.startTime)
     ) {
-
       // merge together the hourly forecasts with desirable properties to get
       // a time range
       const prev = timePeriods[timePeriods.length - 1];
