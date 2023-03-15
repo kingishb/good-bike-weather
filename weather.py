@@ -33,7 +33,7 @@ with urllib.request.urlopen(TAKOMA_PARK_FORECAST_URL) as resp:
     periods = json.load(resp)["properties"]["periods"]
 
 # find good times to bike
-time_periods = []
+good_time_periods = []
 for period in periods:
 
     # parse wind speed
@@ -50,8 +50,8 @@ for period in periods:
         and wind_speed < 15
     ):
         # merge together hourly forecast that make up a block of good weather
-        if len(time_periods) > 0 and (prev := time_periods[-1])["endTime"] == period["startTime"]:
-            time_periods[-1] = {
+        if len(good_time_periods) > 0 and (prev := good_time_periods[-1])["endTime"] == period["startTime"]:
+            good_time_periods[-1] = {
                 "startTime": prev["startTime"],
                 "endTime": period["endTime"],
                 "temperature": max(period["temperature"], prev["temperature"]),
@@ -62,7 +62,7 @@ for period in periods:
                 "maxWindSpeed": max(wind_speed, prev["maxWindSpeed"]),
             }
         else:
-            time_periods.append(
+            good_time_periods.append(
                 {
                     "startTime": period["startTime"],
                     "endTime": period["endTime"],
@@ -75,15 +75,15 @@ for period in periods:
             )
 
 
-if len(time_periods) == 0:
+if len(good_time_periods) == 0:
     print("😭 no times found!")
     sys.exit(0)
 
-print(time_periods)
+print(good_time_periods)
 
 # build message to send
 time_messages = []
-for t in time_periods:
+for t in good_time_periods:
     time_messages.append(
         f'🚴 {t["startTime"]} - {t["endTime"]} Temp {t["temperature"]} F Precipitation {t["probabilityOfPrecipitation"]}% Wind Speed {t["maxWindSpeed"]} mph'
     )
