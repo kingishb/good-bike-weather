@@ -9,17 +9,17 @@ TAKOMA_PARK_FORECAST_URL = (
     "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly"
 )
 PUSHOVER_USER = os.getenv("PUSHOVER_USER")
+PUSHOVER_TOKEN = os.getenv("PUSHOVER_TOKEN")
+USER_AGENT = "github.com/kingishb/good-bike-weather"
+WIND_SPEED_REGEX = r"(?P<high>\d+) mph$"
+
 if not PUSHOVER_USER:
     print(f"PUSHOVER_USER required")
     sys.exit(1)
 
-PUSHOVER_TOKEN = os.getenv("PUSHOVER_TOKEN")
 if not PUSHOVER_TOKEN:
     print(f"PUSHOVER_TOKEN required")
     sys.exit(1)
-
-USER_AGENT = "github.com/kingishb/good-bike-weather"
-WIND_SPEED_REGEX = r"(?P<high>\d+) mph$"
 
 
 # get weather forecast
@@ -29,18 +29,21 @@ with urllib.request.urlopen(TAKOMA_PARK_FORECAST_URL) as resp:
 # find good times to bike
 time_periods = []
 for period in periods:
+
+    # parse wind speed
     m = re.match(WIND_SPEED_REGEX, period["windSpeed"])
     if not m:
         print("could not parse wind speed", period["windSpeed"])
         sys.exit(1)
     wind_speed = int(m["high"])
+
     if (
         period["isDaytime"]
         and 50 < period["temperature"] < 85
         and period["probabilityOfPrecipitation"]["value"] < 30
         and wind_speed < 15
     ):
-        # merge together hourly forecast if they make up a block of good weather
+        # merge together hourly forecast that make up a block of good weather
         if len(time_periods) > 0 and (prev := time_periods[-1])["endTime"] == period["startTime"]:
             time_periods[-1] = {
                 "startTime": prev["startTime"],
@@ -64,6 +67,8 @@ for period in periods:
                     "maxWindSpeed": wind_speed,
                 }
             )
+
+
 if len(time_periods) == 0:
     print("😭 no times found!")
     sys.exit(0)
