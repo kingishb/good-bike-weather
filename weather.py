@@ -4,8 +4,6 @@ import re
 
 import requests
 
-from rich import print
-
 TAKOMA_PARK_FORECAST_URL = (
     "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly"
 )
@@ -92,16 +90,17 @@ print(time_periods)
 # build message to send
 time_messages = []
 for t in time_periods:
-    time_messages.append(f'🚴 {t["startTime"]} - {t["endTime"]} Temp {t["temperature"]} F Precipitation {t["probabilityOfPrecipitation"]}% Wind Speed {t["maxWindSpeed"]} mph')
+    time_messages.append(
+        f'🚴 {t["startTime"]} - {t["endTime"]} Temp {t["temperature"]} F Precipitation {t["probabilityOfPrecipitation"]}% Wind Speed {t["maxWindSpeed"]} mph'
+    )
 
-t = '\n'.join(time_messages)
+t = "\n".join(time_messages)
 msg = f"""☀️  Great bike weather coming up! 🚲
 {t}
 Make a calendar entry and get out there!"""
 
 # send push notification
-requests.post("https://api.pushover.net/1/messages.json", json={
-    "token": PUSHOVER_TOKEN,
-    "user": PUSHOVER_USER,
-    "message": msg
-    })
+requests.post(
+    "https://api.pushover.net/1/messages.json",
+    json={"token": PUSHOVER_TOKEN, "user": PUSHOVER_USER, "message": msg},
+)
