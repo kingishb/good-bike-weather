@@ -1,3 +1,9 @@
+"""
+Script to send a notification when the weather is going to be temperate, clear, and low-ish wind so 
+I can plan a long bike ride.
+
+Requires PUSHOVER_USER and PUSHOVER_TOKEN env vars to send push notifications.
+"""
 import os
 import sys
 import re
