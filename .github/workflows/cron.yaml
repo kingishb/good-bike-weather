@@ -19,6 +19,6 @@ jobs:
         env: 
           PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
           PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
-        run: python weather.py
+        run: python ../weather.py
           
           
