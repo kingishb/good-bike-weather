@@ -1,8 +1,9 @@
 import os
 import sys
 import re
+import json
+import urllib.request
 
-import requests
 
 TAKOMA_PARK_FORECAST_URL = (
     "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly"
@@ -22,12 +23,8 @@ WIND_SPEED_REGEX = r"(?P<high>\d+) mph$"
 
 
 # get weather forecast
-resp = requests.get(TAKOMA_PARK_FORECAST_URL)
-if resp.status_code > 299:
-    print(f"NOAA API error: {resp.status_code} - resp.body")
-    sys.exit(1)
-
-periods = resp.json()["properties"]["periods"]
+with urllib.request.urlopen(TAKOMA_PARK_FORECAST_URL) as resp:
+    periods = json.load(resp)["properties"]["periods"]
 
 # find good times to bike
 time_periods = []
@@ -44,31 +41,17 @@ for period in periods:
         and wind_speed < 15
     ):
         # merge together hourly forecast if they make up a block of good weather
-        if len(time_periods) > 0:
-            prev = time_periods[-1]
-            if prev["endTime"] == period["startTime"]:
-                time_periods[-1] = {
-                    "startTime": prev["startTime"],
-                    "endTime": period["endTime"],
-                    "temperature": max(period["temperature"], prev["temperature"]),
-                    "probabilityOfPrecipitation": max(
-                        period["probabilityOfPrecipitation"]["value"],
-                        prev["probabilityOfPrecipitation"],
-                    ),
-                    "maxWindSpeed": max(wind_speed, prev["maxWindSpeed"]),
-                }
-            else:
-                time_periods.append(
-                    {
-                        "startTime": period["startTime"],
-                        "endTime": period["endTime"],
-                        "temperature": period["temperature"],
-                        "probabilityOfPrecipitation": period[
-                            "probabilityOfPrecipitation"
-                        ]["value"],
-                        "maxWindSpeed": wind_speed,
-                    }
-                )
+        if len(time_periods) > 0 and (prev := time_periods[-1])["endTime"] == period["startTime"]:
+            time_periods[-1] = {
+                "startTime": prev["startTime"],
+                "endTime": period["endTime"],
+                "temperature": max(period["temperature"], prev["temperature"]),
+                "probabilityOfPrecipitation": max(
+                    period["probabilityOfPrecipitation"]["value"],
+                    prev["probabilityOfPrecipitation"],
+                ),
+                "maxWindSpeed": max(wind_speed, prev["maxWindSpeed"]),
+            }
         else:
             time_periods.append(
                 {
@@ -100,7 +83,13 @@ msg = f"""☀️  Great bike weather coming up! 🚲
 Make a calendar entry and get out there!"""
 
 # send push notification
-requests.post(
+req = urllib.request.Request(
     "https://api.pushover.net/1/messages.json",
-    json={"token": PUSHOVER_TOKEN, "user": PUSHOVER_USER, "message": msg},
+    json.dumps({"token": PUSHOVER_TOKEN, "user": PUSHOVER_USER, "message": msg}).encode(
+        "utf8"
+    ),
+    headers={"content-type": "application/json"},
+    method="POST",
 )
+with urllib.request.urlopen(req) as resp:
+    print(json.load(resp))
