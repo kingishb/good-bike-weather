@@ -1,5 +1,5 @@
 """
-Script to send a notification when the weather is going to be temperate, clear, and low-ish wind so 
+Script to send a daily digest for weather forecasts in the next week that are temperate, clear, and low-ish wind so 
 I can plan a long bike ride.
 
 Requires PUSHOVER_USER and PUSHOVER_TOKEN env vars to send push notifications.
