@@ -4,12 +4,11 @@ temperate, clear, and low-ish wind so I can plan a long bike ride.
 
 Requires PUSHOVER_USER and PUSHOVER_TOKEN env vars to send push notifications.
 """
-import os
-import sys
-import re
 import json
+import os
+import re
+import sys
 import urllib.request
-
 
 TAKOMA_PARK_FORECAST_URL = (
     "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly"
@@ -20,11 +19,11 @@ USER_AGENT = "github.com/kingishb/good-bike-weather"
 WIND_SPEED_REGEX = r"(?P<high>\d+) mph$"
 
 if not PUSHOVER_USER:
-    print(f"PUSHOVER_USER required")
+    print("PUSHOVER_USER required")
     sys.exit(1)
 
 if not PUSHOVER_TOKEN:
-    print(f"PUSHOVER_TOKEN required")
+    print("PUSHOVER_TOKEN required")
     sys.exit(1)
 
 req = urllib.request.Request(
