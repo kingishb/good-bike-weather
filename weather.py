@@ -27,9 +27,10 @@ if not PUSHOVER_TOKEN:
     print(f"PUSHOVER_TOKEN required")
     sys.exit(1)
 
+req = urllib.request.Request(TAKOMA_PARK_FORECAST_URL, headers = {"User-Agent": USER_AGENT})
 
 # get weather forecast
-with urllib.request.urlopen(TAKOMA_PARK_FORECAST_URL) as resp:
+with urllib.request.urlopen(req) as resp:
     periods = json.load(resp)["properties"]["periods"]
 
 # find good times to bike
