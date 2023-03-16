@@ -1,6 +1,6 @@
 """
-Script to send a daily digest for weather forecasts in the next week that are temperate, clear, and low-ish wind so 
-I can plan a long bike ride.
+Script to send a daily digest for weather forecasts in the next week that are 
+temperate, clear, and low-ish wind so  I can plan a long bike ride.
 
 Requires PUSHOVER_USER and PUSHOVER_TOKEN env vars to send push notifications.
 """
@@ -27,7 +27,9 @@ if not PUSHOVER_TOKEN:
     print(f"PUSHOVER_TOKEN required")
     sys.exit(1)
 
-req = urllib.request.Request(TAKOMA_PARK_FORECAST_URL, headers = {"User-Agent": USER_AGENT})
+req = urllib.request.Request(
+    TAKOMA_PARK_FORECAST_URL, headers={"User-Agent": USER_AGENT}
+)
 
 # get weather forecast
 with urllib.request.urlopen(req) as resp:
@@ -51,7 +53,10 @@ for period in periods:
         and wind_speed < 15
     ):
         # merge together hourly forecast that make up a block of good weather
-        if len(good_time_periods) > 0 and (prev := good_time_periods[-1])["endTime"] == period["startTime"]:
+        if (
+            len(good_time_periods) > 0
+            and (prev := good_time_periods[-1])["endTime"] == period["startTime"]
+        ):
             good_time_periods[-1] = {
                 "startTime": prev["startTime"],
                 "endTime": period["endTime"],
