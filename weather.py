@@ -8,14 +8,67 @@ import re
 import sys
 import urllib.request
 from datetime import datetime
-from pprint import pprint
-
-USER_AGENT = "github.com/kingishb/good-bike-weather"
-WIND_SPEED_REGEX = r"(?P<high>\d+) mph$"
 
 
 def fmt(time):
     return datetime.fromisoformat(time).strftime("%A, %B %d %I:%M%p")
+
+
+def weather_forecast(url):
+    """Download the weather forecast from NOAA's weather API, parsing the
+    wind speed."""
+
+    req = urllib.request.Request(
+        url, headers={"User-Agent": "github.com/kingishb/good-bike-weather"}
+    )
+
+    # get weather forecast
+    with urllib.request.urlopen(req) as resp:
+        periods = json.load(resp)["properties"]["periods"]
+
+    wind_speed_regex = r"(?P<high>\d+) mph$"
+    for p in periods:
+        # parse wind speed
+        m = re.match(wind_speed_regex, p["windSpeed"])
+        if not m:
+            print("error: could not parse wind speed", p["windSpeed"])
+            sys.exit(1)
+        p["parsedWindSpeed"] = int(m["high"])
+
+    return periods
+
+
+def merge_append_forecast(time_periods, hourly_forecast):
+    """Add an hourly forecast to a list of forecast periods. If it runs together
+    with the previous hourly forecast, merge together the two forecasts."""
+    if (
+        len(time_periods) > 0
+        and (prev := time_periods[-1])["endTime"] == hourly_forecast["startTime"]
+    ):
+        time_periods[-1] = {
+            "startTime": prev["startTime"],
+            "endTime": hourly_forecast["endTime"],
+            "temperature": max(hourly_forecast["temperature"], prev["temperature"]),
+            "probabilityOfPrecipitation": max(
+                hourly_forecast["probabilityOfPrecipitation"]["value"],
+                prev["probabilityOfPrecipitation"],
+            ),
+            "maxWindSpeed": max(
+                hourly_forecast["parsedWindSpeed"], prev["maxWindSpeed"]
+            ),
+        }
+    else:
+        time_periods.append(
+            {
+                "startTime": hourly_forecast["startTime"],
+                "endTime": hourly_forecast["endTime"],
+                "temperature": hourly_forecast["temperature"],
+                "probabilityOfPrecipitation": hourly_forecast[
+                    "probabilityOfPrecipitation"
+                ]["value"],
+                "maxWindSpeed": hourly_forecast["parsedWindSpeed"],
+            }
+        )
 
 
 def main():
@@ -23,80 +76,60 @@ def main():
     parser.add_argument("noaa_url", help="forecast url at api.weather.gov")
     parser.add_argument("pushover_user", help="pushover user")
     parser.add_argument("pushover_token", help="pushover token")
+    parser.add_argument(
+        "--debug", action="store_true", help="run without sending a push alert"
+    )
     args = parser.parse_args()
 
-    req = urllib.request.Request(args.noaa_url, headers={"User-Agent": USER_AGENT})
-
-    # get weather forecast
-    with urllib.request.urlopen(req) as resp:
-        periods = json.load(resp)["properties"]["periods"]
+    periods = weather_forecast(args.noaa_url)
 
     # find good times to bike
     good_time_periods = []
+    # colder, but at least low wind
+    low_wind_periods = []
+
     for period in periods:
 
-        # parse wind speed
-        m = re.match(WIND_SPEED_REGEX, period["windSpeed"])
-        if not m:
-            print("could not parse wind speed", period["windSpeed"])
-            sys.exit(1)
-        wind_speed = int(m["high"])
-
-        if (
-            period["isDaytime"]
-            and period["probabilityOfPrecipitation"]["value"] < 30
+        if period["isDaytime"] and period["probabilityOfPrecipitation"]["value"] < 25:
             # tolerate a little more wind if it's warmer, a "light breeze"
             # in 50-60 degrees a "gentle breeze" when temp is 60-80
             # src: https://www.weather.gov/pqr/wind
-            and (
-                (50 < period["temperature"] < 60 and wind_speed < 7)
-                or (60 < period["temperature"] < 80 and wind_speed < 12)
-            )
-        ):
-            # merge together hourly forecast that make up a block of good weather
-            if (
-                len(good_time_periods) > 0
-                and (prev := good_time_periods[-1])["endTime"] == period["startTime"]
+            if (50 < period["temperature"] < 60 and period["parsedWindSpeed"] < 8) or (
+                60 < period["temperature"] < 85 and period["parsedWindSpeed"] < 12
             ):
-                good_time_periods[-1] = {
-                    "startTime": prev["startTime"],
-                    "endTime": period["endTime"],
-                    "temperature": max(period["temperature"], prev["temperature"]),
-                    "probabilityOfPrecipitation": max(
-                        period["probabilityOfPrecipitation"]["value"],
-                        prev["probabilityOfPrecipitation"],
-                    ),
-                    "maxWindSpeed": max(wind_speed, prev["maxWindSpeed"]),
-                }
-            else:
-                good_time_periods.append(
-                    {
-                        "startTime": period["startTime"],
-                        "endTime": period["endTime"],
-                        "temperature": period["temperature"],
-                        "probabilityOfPrecipitation": period[
-                            "probabilityOfPrecipitation"
-                        ]["value"],
-                        "maxWindSpeed": wind_speed,
-                    }
-                )
+                merge_append_forecast(good_time_periods, period)
 
-    if len(good_time_periods) == 0:
+            elif 32 < period["temperature"] < 50 and period["parsedWindSpeed"] < 8:
+                merge_append_forecast(low_wind_periods, period)
+
+    if args.debug:
+        print("good bike weather", good_time_periods)
+        print("cold-but-not-windy, acceptable weather", low_wind_periods)
+        return
+
+    if len(good_time_periods) == 0 and len(low_wind_periods) == 0:
         print("😭 no times found!")
-        sys.exit(0)
-
-    pprint(good_time_periods)
+        return
 
     # build message to send
-    time_messages = []
+    good_times = []
     for t in good_time_periods:
-        time_messages.append(
+        good_times.append(
             f'🚴 {fmt(t["startTime"])} - {fmt(t["endTime"])}, Temp {t["temperature"]} F, Precipitation {t["probabilityOfPrecipitation"]}%, Wind Speed {t["maxWindSpeed"]} mph'
         )
 
-    t = "\n".join(time_messages)
+    not_windy_times = []
+    for t in low_wind_periods:
+        not_windy_times.append(
+            f'🚴 {fmt(t["startTime"])} - {fmt(t["endTime"])}, Temp {t["temperature"]} F, Precipitation {t["probabilityOfPrecipitation"]}%, Wind Speed {t["maxWindSpeed"]} mph'
+        )
+
+    t = "\n".join(good_times)
+    nw = "\n".join(not_windy_times)
     msg = f"""☀️  Great bike weather coming up! 🚲
     {t}
+    🧤🧣 A little chilly, but you can do it! 
+    {nw}
     Make a calendar entry and get out there!"""
 
     # send push notification
@@ -108,8 +141,9 @@ def main():
         headers={"content-type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(req) as resp:
-        print(json.load(resp))
+    if not args.debug:
+        with urllib.request.urlopen(req) as resp:
+            print(json.load(resp))
 
 
 if __name__ == "__main__":
