@@ -100,8 +100,7 @@ def main():
                 period["temperature"],
                 period["parsedWindSpeed"],
             )
-            # tolerate a little more wind if it's warmer, a "light breeze"
-            # in 50-60 degrees a "gentle breeze" when temp is 60-80
+            # tolerate a little more wind if it's warmer
             # src: https://www.weather.gov/pqr/wind
             if (
                 (50 <= period["temperature"] <= 65 and period["parsedWindSpeed"] < 13)
