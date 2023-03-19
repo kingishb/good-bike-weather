@@ -107,24 +107,19 @@ def main():
         print("cold-but-not-windy, acceptable weather", low_wind_periods)
         return
 
-    if len(good_time_periods) == 0 and len(low_wind_periods) == 0:
-        print("😭 no times found!")
-        return
-
     # build message to send
     good_times = []
     for t in good_time_periods:
         good_times.append(
             f'🚴 {fmt(t["startTime"])} - {fmt(t["endTime"])}, Temp {t["temperature"]} F, Precipitation {t["probabilityOfPrecipitation"]}%, Wind Speed {t["maxWindSpeed"]} mph'
         )
+    t = "\n".join(good_times)
 
     not_windy_times = []
     for t in low_wind_periods:
         not_windy_times.append(
             f'🚴 {fmt(t["startTime"])} - {fmt(t["endTime"])}, Temp {t["temperature"]} F, Precipitation {t["probabilityOfPrecipitation"]}%, Wind Speed {t["maxWindSpeed"]} mph'
         )
-
-    t = "\n".join(good_times)
     nw = "\n".join(not_windy_times)
     msg = f"""☀️  Great bike weather coming up! 🚲
     {t}
@@ -141,9 +136,8 @@ def main():
         headers={"content-type": "application/json"},
         method="POST",
     )
-    if not args.debug:
-        with urllib.request.urlopen(req) as resp:
-            print(json.load(resp))
+    with urllib.request.urlopen(req) as resp:
+        print(json.load(resp))
 
 
 if __name__ == "__main__":
