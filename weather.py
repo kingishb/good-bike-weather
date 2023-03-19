@@ -6,7 +6,6 @@ Requires PUSHOVER_USER and PUSHOVER_TOKEN env vars to send push notifications.
 """
 import argparse
 import json
-import os
 import re
 import sys
 import urllib.request
