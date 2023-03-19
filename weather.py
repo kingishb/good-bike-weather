@@ -10,8 +10,12 @@ import urllib.request
 from datetime import datetime
 
 
-def fmt(time):
+def pretty_datetime(time):
     return datetime.fromisoformat(time).strftime("%A, %B %d %I:%M%p")
+
+
+def pretty_time(time):
+    return datetime.fromisoformat(time).strftime("%I:%M%p")
 
 
 def weather_forecast(url):
@@ -102,30 +106,36 @@ def main():
             elif 32 < period["temperature"] < 50 and period["parsedWindSpeed"] < 8:
                 merge_append_forecast(low_wind_periods, period)
 
-    if args.debug:
-        print("good bike weather", good_time_periods)
-        print("cold-but-not-windy, acceptable weather", low_wind_periods)
-        return
-
     # build message to send
     good_times = []
     for t in good_time_periods:
         good_times.append(
-            f'🚴 {fmt(t["startTime"])} - {fmt(t["endTime"])}, Temp {t["temperature"]} F, Precipitation {t["probabilityOfPrecipitation"]}%, Wind Speed {t["maxWindSpeed"]} mph'
+            f'🚴 {pretty_datetime(t["startTime"])} - {pretty_time(t["endTime"])}, Temp {t["temperature"]} F, Precipitation {t["probabilityOfPrecipitation"]}%, Wind Speed {t["maxWindSpeed"]} mph'
         )
-    t = "\n".join(good_times)
+    gt = "\n".join(good_times)
 
     not_windy_times = []
     for t in low_wind_periods:
         not_windy_times.append(
-            f'🚴 {fmt(t["startTime"])} - {fmt(t["endTime"])}, Temp {t["temperature"]} F, Precipitation {t["probabilityOfPrecipitation"]}%, Wind Speed {t["maxWindSpeed"]} mph'
+            f'🚴 {pretty_datetime(t["startTime"])} - {pretty_time(t["endTime"])}, Temp {t["temperature"]} F, Precipitation {t["probabilityOfPrecipitation"]}%, Wind Speed {t["maxWindSpeed"]} mph'
         )
     nw = "\n".join(not_windy_times)
-    msg = f"""☀️  Great bike weather coming up! 🚲
-    {t}
-    🧤🧣 A little chilly, but you can do it! 
-    {nw}
-    Make a calendar entry and get out there!"""
+    msg = "🚲 Cycling weather report 🚲"
+    if len(good_time_periods) > 0:
+        msg += f"""
+
+☀️  Great bike weather!
+{gt}"""
+    if len(not_windy_times) > 0:
+        msg += f"""
+
+🧤🧣 A little chilly, but you can do it! 
+{nw}"""
+    msg += "\n\nMake a calendar entry and get out there!\n"
+
+    if args.debug:
+        print(msg)
+        return
 
     # send push notification
     req = urllib.request.Request(
