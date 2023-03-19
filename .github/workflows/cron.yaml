@@ -1,9 +1,6 @@
 name: weather_checker
 
 on:
-  push:
-    branches:
-      - main
   schedule:
     - cron: '0 14 * * *' # runs at 14:00 UTC everyday
 

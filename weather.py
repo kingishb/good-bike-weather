@@ -104,7 +104,7 @@ def main():
             # src: https://www.weather.gov/pqr/wind
             if (
                 (50 <= period["temperature"] <= 65 and period["parsedWindSpeed"] < 13)
-                or (65 < period["temperature"] <= 75 and period["parsedWindSpeed"] <= 18)
+                or (65 < period["temperature"] <= 83 and period["parsedWindSpeed"] <= 18)
             ):
                 merge_append_forecast(good_time_periods, period)
 
