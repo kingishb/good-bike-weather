@@ -104,9 +104,8 @@ def main():
             # in 50-60 degrees a "gentle breeze" when temp is 60-80
             # src: https://www.weather.gov/pqr/wind
             if (
-                (50 <= period["temperature"] <= 60 and period["parsedWindSpeed"] <= 8)
-                or (60 < period["temperature"] <= 70 and period["parsedWindSpeed"] <= 13)
-                or (70 < period["temperature"] <= 85 and period["parsedWindSpeed"] < 19)
+                (50 <= period["temperature"] <= 65 and period["parsedWindSpeed"] < 13)
+                or (65 < period["temperature"] <= 75 and period["parsedWindSpeed"] <= 18)
             ):
                 merge_append_forecast(good_time_periods, period)
 
