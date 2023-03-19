@@ -95,15 +95,16 @@ def main():
     for period in periods:
 
         if period["isDaytime"] and period["probabilityOfPrecipitation"]["value"] < 25:
+            print(pretty_datetime(period["startTime"]), period["temperature"], period["parsedWindSpeed"])
             # tolerate a little more wind if it's warmer, a "light breeze"
             # in 50-60 degrees a "gentle breeze" when temp is 60-80
             # src: https://www.weather.gov/pqr/wind
-            if (50 < period["temperature"] < 60 and period["parsedWindSpeed"] < 8) or (
-                60 < period["temperature"] < 85 and period["parsedWindSpeed"] < 12
+            if (50 <= period["temperature"] <= 60 and period["parsedWindSpeed"] <= 8) or (
+                60 < period["temperature"] <= 85 and period["parsedWindSpeed"] < 12
             ):
                 merge_append_forecast(good_time_periods, period)
 
-            elif 32 < period["temperature"] < 50 and period["parsedWindSpeed"] < 8:
+            elif 32 <= period["temperature"] <= 50 and period["parsedWindSpeed"] < 8:
                 merge_append_forecast(low_wind_periods, period)
 
     # build message to send
