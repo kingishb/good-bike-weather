@@ -18,6 +18,7 @@ jobs:
         env: 
           PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
           PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
-        run: python weather.py
+          TAKOMA_PARK_FORECAST_URL: "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly"
+        run: python weather.py $TAKOMA_PARK_FORECAST_URL $PUSHOVER_USER $PUSHOVER_TOKEN
           
           

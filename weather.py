@@ -4,6 +4,7 @@ temperate, clear, and low-ish wind so I can plan a long bike ride.
 
 Requires PUSHOVER_USER and PUSHOVER_TOKEN env vars to send push notifications.
 """
+import argparse
 import json
 import os
 import re
@@ -12,13 +13,14 @@ import urllib.request
 from datetime import datetime
 from pprint import pprint
 
-TAKOMA_PARK_FORECAST_URL = (
-    "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly"
-)
-PUSHOVER_USER = os.getenv("PUSHOVER_USER")
-PUSHOVER_TOKEN = os.getenv("PUSHOVER_TOKEN")
 USER_AGENT = "github.com/kingishb/good-bike-weather"
 WIND_SPEED_REGEX = r"(?P<high>\d+) mph$"
+
+parser = argparse.ArgumentParser()
+parser.add_argument("noaa_url", help="forecast url at api.weather.gov")
+parser.add_argument("pushover_user", help="pushover user")
+parser.add_argument("pushover_token", help="pushover token")
+args = parser.parse_args()
 
 
 def fmt(time):
@@ -26,16 +28,9 @@ def fmt(time):
 
 
 def main():
-    if not PUSHOVER_USER:
-        print("PUSHOVER_USER required")
-        sys.exit(1)
-
-    if not PUSHOVER_TOKEN:
-        print("PUSHOVER_TOKEN required")
-        sys.exit(1)
 
     req = urllib.request.Request(
-        TAKOMA_PARK_FORECAST_URL, headers={"User-Agent": USER_AGENT}
+        args.noaa_url, headers={"User-Agent": USER_AGENT}
     )
 
     # get weather forecast
@@ -114,7 +109,7 @@ def main():
     req = urllib.request.Request(
         "https://api.pushover.net/1/messages.json",
         json.dumps(
-            {"token": PUSHOVER_TOKEN, "user": PUSHOVER_USER, "message": msg}
+            {"token": args.pushover_token, "user": args.pushover_user, "message": msg}
         ).encode("utf8"),
         headers={"content-type": "application/json"},
         method="POST",
