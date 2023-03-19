@@ -56,10 +56,12 @@ def main():
         if (
             period["isDaytime"]
             and period["probabilityOfPrecipitation"]["value"] < 30
-            # tolerate a little more wind if it's warmer
+            # tolerate a little more wind if it's warmer, a "light breeze"
+            # in 50-60 degrees a "gentle breeze" when temp is 60-80
+            # src: https://www.weather.gov/pqr/wind
             and (
-                (50 < period["temperature"] < 60 and wind_speed < 10)
-                or (60 < period["temperature"] < 85 and wind_speed < 15)
+                (50 < period["temperature"] < 60 and wind_speed < 7)
+                or (60 < period["temperature"] < 80 and wind_speed < 12)
             )
         ):
             # merge together hourly forecast that make up a block of good weather
