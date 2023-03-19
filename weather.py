@@ -10,6 +10,7 @@ import re
 import sys
 import urllib.request
 from datetime import datetime
+from pprint import pprint
 
 TAKOMA_PARK_FORECAST_URL = (
     "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly"
@@ -54,9 +55,12 @@ def main():
 
         if (
             period["isDaytime"]
-            and 50 < period["temperature"] < 85
             and period["probabilityOfPrecipitation"]["value"] < 30
-            and wind_speed < 15
+            # tolerate a little more wind if it's warmer
+            and (
+                (50 < period["temperature"] < 60 and wind_speed < 10)
+                or (60 < period["temperature"] < 85 and wind_speed < 15)
+            )
         ):
             # merge together hourly forecast that make up a block of good weather
             if (
@@ -90,7 +94,7 @@ def main():
         print("😭 no times found!")
         sys.exit(0)
 
-    print(good_time_periods)
+    pprint(good_time_periods)
 
     # build message to send
     time_messages = []
