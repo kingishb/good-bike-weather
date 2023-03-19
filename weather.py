@@ -13,11 +13,6 @@ from pprint import pprint
 USER_AGENT = "github.com/kingishb/good-bike-weather"
 WIND_SPEED_REGEX = r"(?P<high>\d+) mph$"
 
-parser = argparse.ArgumentParser()
-parser.add_argument("noaa_url", help="forecast url at api.weather.gov")
-parser.add_argument("pushover_user", help="pushover user")
-parser.add_argument("pushover_token", help="pushover token")
-args = parser.parse_args()
 
 
 def fmt(time):
@@ -25,6 +20,11 @@ def fmt(time):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("noaa_url", help="forecast url at api.weather.gov")
+    parser.add_argument("pushover_user", help="pushover user")
+    parser.add_argument("pushover_token", help="pushover token")
+    args = parser.parse_args()
 
     req = urllib.request.Request(
         args.noaa_url, headers={"User-Agent": USER_AGENT}
