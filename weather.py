@@ -14,7 +14,6 @@ USER_AGENT = "github.com/kingishb/good-bike-weather"
 WIND_SPEED_REGEX = r"(?P<high>\d+) mph$"
 
 
-
 def fmt(time):
     return datetime.fromisoformat(time).strftime("%A, %B %d %I:%M%p")
 
@@ -26,9 +25,7 @@ def main():
     parser.add_argument("pushover_token", help="pushover token")
     args = parser.parse_args()
 
-    req = urllib.request.Request(
-        args.noaa_url, headers={"User-Agent": USER_AGENT}
-    )
+    req = urllib.request.Request(args.noaa_url, headers={"User-Agent": USER_AGENT})
 
     # get weather forecast
     with urllib.request.urlopen(req) as resp:
