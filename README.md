@@ -16,4 +16,5 @@ positional arguments:
 options:
   -h, --help      show this help message and exit
   --debug         print all the forecasts to look at and the alert
-  --cli           run without sending a push alert```
+  --cli           run without sending a push alert
+```
