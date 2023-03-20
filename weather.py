@@ -8,7 +8,6 @@ import re
 import sys
 import urllib.request
 from datetime import datetime
-from pprint import pprint
 
 
 def pretty_datetime(time):
@@ -44,8 +43,9 @@ def weather_forecast(url):
 
 
 def merge_append_forecast(time_periods, hourly_forecast):
-    """Add an hourly forecast to a list of forecast periods. If it runs together
-    with the previous hourly forecast, merge together the two forecasts."""
+    """Add an hourly forecast to a list of desirable forecast periods. 
+    If it runs together with the previous hourly forecast, merge together 
+    the two forecasts."""
     if (
         len(time_periods) > 0
         and (prev := time_periods[-1])["endTime"] == hourly_forecast["startTime"]
@@ -76,53 +76,9 @@ def merge_append_forecast(time_periods, hourly_forecast):
         )
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("noaa_url", help="forecast url at api.weather.gov")
-    parser.add_argument("pushover_user", help="pushover user")
-    parser.add_argument("pushover_token", help="pushover token")
-    parser.add_argument(
-        "--debug", action="store_true", help="print all the forecasts to look at and the alert"
-    )
-    parser.add_argument(
-        "--cli", action="store_true", help="run without sending a push alert"
-    )
-    args = parser.parse_args()
+def build_message(good_time_periods, low_wind_periods):
+    """Build weather report to send."""
 
-    periods = weather_forecast(args.noaa_url)
-
-    # find good times to bike
-    good_time_periods = []
-    # colder, but at least low wind
-    low_wind_periods = []
-
-    for period in periods:
-
-        if period["isDaytime"] and period["probabilityOfPrecipitation"]["value"] < 25:
-            # tolerate a little more wind if it's warmer
-            # src: https://www.weather.gov/pqr/wind
-            if (
-                50 <= period["temperature"] <= 65 and period["parsedWindSpeed"] < 13
-            ) or (65 < period["temperature"] <= 83 and period["parsedWindSpeed"] <= 18):
-                merge_append_forecast(good_time_periods, period)
-
-            elif 32 <= period["temperature"] <= 50 and period["parsedWindSpeed"] < 8:
-                merge_append_forecast(low_wind_periods, period)
-
-    if args.debug:
-        for p in periods:
-            if p["isDaytime"]:
-                print(
-                    pretty_datetime(p["startTime"]),
-                    "temp",
-                    p["temperature"],
-                    "wind",
-                    p["parsedWindSpeed"],
-                    "precipitation",
-                    p["probabilityOfPrecipitation"]["value"],
-                )
-
-    # build message to send
     good_times = []
     for t in good_time_periods:
         good_times.append(
@@ -148,22 +104,79 @@ def main():
 🧤🧣 A little chilly, but you can do it! 
 {nw}"""
     msg += "\n\nMake a calendar entry and get out there!\n"
+    return msg
 
-    if args.cli or args.debug:
-        print(msg)
-        return
 
-    # send push notification
+def push(msg, pushover_user, pushover_token):
+    """Send push notification."""
     req = urllib.request.Request(
         "https://api.pushover.net/1/messages.json",
         json.dumps(
-            {"token": args.pushover_token, "user": args.pushover_user, "message": msg}
+            {"token": pushover_token, "user": pushover_user, "message": msg}
         ).encode("utf8"),
         headers={"content-type": "application/json"},
         method="POST",
     )
     with urllib.request.urlopen(req) as resp:
         print(json.load(resp))
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("noaa_url", help="forecast url at api.weather.gov")
+    parser.add_argument("pushover_user", help="pushover user")
+    parser.add_argument("pushover_token", help="pushover token")
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="print all the forecasts to look at and the alert",
+    )
+    parser.add_argument(
+        "--cli", action="store_true", help="run without sending a push alert"
+    )
+    args = parser.parse_args()
+
+    periods = weather_forecast(args.noaa_url)
+
+    # good times to bike
+    good_time_periods = []
+    # colder, but at least low wind
+    low_wind_periods = []
+
+    for period in periods:
+
+        if period["isDaytime"] and period["probabilityOfPrecipitation"]["value"] < 25:
+            # tolerate a little more wind if it's warmer
+            # src: https://www.weather.gov/pqr/wind
+            if (
+                50 <= period["temperature"] <= 65 and period["parsedWindSpeed"] < 13
+            ) or (65 < period["temperature"] <= 83 and period["parsedWindSpeed"] <= 18):
+                merge_append_forecast(good_time_periods, period)
+
+            # cold, but not much wind
+            elif 32 <= period["temperature"] <= 50 and period["parsedWindSpeed"] < 8:
+                merge_append_forecast(low_wind_periods, period)
+
+    if args.debug:
+        for p in periods:
+            if p["isDaytime"]:
+                print(
+                    pretty_datetime(p["startTime"]),
+                    "temp",
+                    p["temperature"],
+                    "wind",
+                    p["parsedWindSpeed"],
+                    "precipitation",
+                    p["probabilityOfPrecipitation"]["value"],
+                )
+
+    msg = build_message(good_time_periods, low_wind_periods)
+
+    if args.cli or args.debug:
+        print(msg)
+        return
+
+    push(msg, args.pushover_user, args.pushover_token)
 
 
 if __name__ == "__main__":
