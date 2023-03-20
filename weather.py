@@ -8,6 +8,7 @@ import re
 import sys
 import urllib.request
 from datetime import datetime
+from pprint import pprint
 
 
 def pretty_datetime(time):
@@ -81,7 +82,10 @@ def main():
     parser.add_argument("pushover_user", help="pushover user")
     parser.add_argument("pushover_token", help="pushover token")
     parser.add_argument(
-        "--debug", action="store_true", help="run without sending a push alert"
+        "--debug", action="store_true", help="print all the forecasts to look at"
+    )
+    parser.add_argument(
+        "--cli", action="store_true", help="run without sending a push alert"
     )
     args = parser.parse_args()
 
@@ -95,21 +99,29 @@ def main():
     for period in periods:
 
         if period["isDaytime"] and period["probabilityOfPrecipitation"]["value"] < 25:
-            print(
-                pretty_datetime(period["startTime"]),
-                period["temperature"],
-                period["parsedWindSpeed"],
-            )
             # tolerate a little more wind if it's warmer
             # src: https://www.weather.gov/pqr/wind
             if (
-                (50 <= period["temperature"] <= 65 and period["parsedWindSpeed"] < 13)
-                or (65 < period["temperature"] <= 83 and period["parsedWindSpeed"] <= 18)
-            ):
+                50 <= period["temperature"] <= 65 and period["parsedWindSpeed"] < 13
+            ) or (65 < period["temperature"] <= 83 and period["parsedWindSpeed"] <= 18):
                 merge_append_forecast(good_time_periods, period)
 
             elif 32 <= period["temperature"] <= 50 and period["parsedWindSpeed"] < 8:
                 merge_append_forecast(low_wind_periods, period)
+
+    if args.debug:
+        pprint(
+            [
+                (
+                    ("date", pretty_datetime(x["startTime"])),
+                    ("temp", x["temperature"]),
+                    ("wind", x["parsedWindSpeed"]),
+                    ("precipitation", x["probabilityOfPrecipitation"]["value"]),
+                )
+                for x in periods
+                if x["isDaytime"]
+            ]
+        )
 
     # build message to send
     good_times = []
@@ -138,7 +150,7 @@ def main():
 {nw}"""
     msg += "\n\nMake a calendar entry and get out there!\n"
 
-    if args.debug:
+    if args.cli or args.debug:
         print(msg)
         return
 
