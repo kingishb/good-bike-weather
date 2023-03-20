@@ -146,14 +146,12 @@ def main():
     for period in periods:
 
         if period["isDaytime"] and period["probabilityOfPrecipitation"]["value"] < 25:
-            # tolerate a little more wind if it's warmer
             # src: https://www.weather.gov/pqr/wind
             if (
                 50 <= period["temperature"] <= 65 and period["parsedWindSpeed"] < 13
             ) or (65 < period["temperature"] <= 83 and period["parsedWindSpeed"] <= 18):
                 merge_append_forecast(good_time_periods, period)
 
-            # cold, but not much wind
             elif 32 <= period["temperature"] <= 50 and period["parsedWindSpeed"] < 8:
                 merge_append_forecast(low_wind_periods, period)
 
