@@ -110,18 +110,17 @@ def main():
                 merge_append_forecast(low_wind_periods, period)
 
     if args.debug:
-        pprint(
-            [
-                (
-                    ("date", pretty_datetime(x["startTime"])),
-                    ("temp", x["temperature"]),
-                    ("wind", x["parsedWindSpeed"]),
-                    ("precipitation", x["probabilityOfPrecipitation"]["value"]),
+        for p in periods:
+            if p["isDaytime"]:
+                print(
+                    pretty_datetime(p["startTime"]),
+                    "temp",
+                    p["temperature"],
+                    "wind",
+                    p["parsedWindSpeed"],
+                    "precipitation",
+                    p["probabilityOfPrecipitation"]["value"],
                 )
-                for x in periods
-                if x["isDaytime"]
-            ]
-        )
 
     # build message to send
     good_times = []
