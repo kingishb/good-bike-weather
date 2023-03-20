@@ -6,8 +6,7 @@ Uses NOAA's [weather API](https://www.weather.gov/documentation/services-web-api
 
 Usage:
 ```
-> python weather.py -h
-usage: weather.py [-h] noaa_url pushover_user pushover_token
+usage: weather.py [-h] [--debug] [--cli] noaa_url pushover_user pushover_token
 
 positional arguments:
   noaa_url        forecast url at api.weather.gov
@@ -16,4 +15,5 @@ positional arguments:
 
 options:
   -h, --help      show this help message and exit
-```
+  --debug         print all the forecasts to look at and the alert
+  --cli           run without sending a push alert```

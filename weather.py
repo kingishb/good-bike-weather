@@ -82,7 +82,7 @@ def main():
     parser.add_argument("pushover_user", help="pushover user")
     parser.add_argument("pushover_token", help="pushover token")
     parser.add_argument(
-        "--debug", action="store_true", help="print all the forecasts to look at"
+        "--debug", action="store_true", help="print all the forecasts to look at and the alert"
     )
     parser.add_argument(
         "--cli", action="store_true", help="run without sending a push alert"
