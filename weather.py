@@ -6,6 +6,8 @@ import argparse
 import json
 import re
 import sys
+import time
+import urllib.error
 import urllib.request
 from datetime import datetime
 
@@ -26,9 +28,20 @@ def weather_forecast(url):
         url, headers={"User-Agent": "github.com/kingishb/good-bike-weather"}
     )
 
-    # get weather forecast
-    with urllib.request.urlopen(req) as resp:
-        periods = json.load(resp)["properties"]["periods"]
+    periods = []
+    # get weather forecast with a couple of retries
+    for i in range(3):
+        try:
+            with urllib.request.urlopen(req) as resp:
+                periods = json.load(resp)["properties"]["periods"]
+                break
+        except urllib.error.HTTPError as e:
+            print("http error", e)
+            time.sleep(2**i)
+
+    if len(periods) == 0:
+        print("error: could not load forecast")
+        sys.exit(1)
 
     wind_speed_regex = r"(?P<high>\d+) mph$"
     for p in periods:
@@ -43,8 +56,8 @@ def weather_forecast(url):
 
 
 def merge_append_forecast(time_periods, hourly_forecast):
-    """Add an hourly forecast to a list of desirable forecast periods. 
-    If it runs together with the previous hourly forecast, merge together 
+    """Add an hourly forecast to a list of desirable forecast periods.
+    If it runs together with the previous hourly forecast, merge together
     the two forecasts."""
     if (
         len(time_periods) > 0
