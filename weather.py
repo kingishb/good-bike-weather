@@ -13,10 +13,12 @@ from datetime import datetime
 
 
 def pretty_datetime(time):
+    """Formats an ISO 8601 timestamp in the format 'Tuesday, March 28 01:00PM'"""
     return datetime.fromisoformat(time).strftime("%A, %B %d %I:%M%p")
 
 
 def pretty_time(time):
+    """Formats an ISO 8601 timestamp in the format '06:00PM'"""
     return datetime.fromisoformat(time).strftime("%I:%M%p")
 
 
@@ -142,10 +144,12 @@ def main():
     parser.add_argument(
         "--debug",
         action="store_true",
-        help="print all the forecasts to look at and the alert",
+        help="print all the forecasts to look at and the message, don't send push alert",
     )
     parser.add_argument(
-        "--cli", action="store_true", help="run without sending a push alert"
+        "--cli",
+        action="store_true",
+        help="print message to stdout without sending a push alert",
     )
     args = parser.parse_args()
 
@@ -153,6 +157,7 @@ def main():
 
     # good times to bike
     good_time_periods = []
+
     # colder, but at least low wind
     low_wind_periods = []
 
