@@ -13,12 +13,12 @@ from datetime import datetime
 
 
 def pretty_datetime(time):
-    """Formats an ISO 8601 timestamp in the format 'Tuesday, March 28 01:00PM'"""
+    """Formats an ISO 8601 timestamp like'Tuesday, March 28 01:00PM'"""
     return datetime.fromisoformat(time).strftime("%A, %B %d %I:%M%p")
 
 
 def pretty_time(time):
-    """Formats an ISO 8601 timestamp in the format '06:00PM'"""
+    """Formats an ISO 8601 timestamp like '06:00PM'"""
     return datetime.fromisoformat(time).strftime("%I:%M%p")
 
 
