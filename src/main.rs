@@ -15,7 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::blocking::Client::new();
     let resp: NOAAForecast = client
         .get(noaa_url)
-        .header("User-Agent", "brian")
+        .header("User-Agent", "https://github.com/kingishb/good-bike-weather")
         .send()?
         .json::<NOAAForecast>()?;
 
