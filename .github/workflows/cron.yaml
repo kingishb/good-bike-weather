@@ -3,6 +3,9 @@ name: weather_checker
 on:
   schedule:
     - cron: '0 14 * * *' # runs at 14:00 UTC everyday
+  pull_request:
+    branches:    
+      - main
 jobs:
   build:
     environment: default
