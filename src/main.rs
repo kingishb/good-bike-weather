@@ -95,7 +95,7 @@ impl TimePeriod {
 fn coalesce(periods: Vec<&Period>) -> Vec<TimePeriod> {
     let mut tp: Vec<TimePeriod> = vec![];
     for cur in periods.into_iter() {
-        if tp.is_empty() {
+        if !tp.is_empty() {
             let mut prev = tp.pop().unwrap();
             if prev.end_time == cur.start_time {
                 prev.end_time = cur.end_time.clone();
