@@ -73,7 +73,7 @@ struct TimePeriod {
 }
 
 impl TimePeriod {
-    // Format a string to send as a text message for a weather forecast period.
+    // Format a string to send as a text message for a weather forecast period
     fn pretty(&self) -> String {
         let start = DateTime::parse_from_rfc3339(&self.start_time)
             .unwrap()
@@ -89,7 +89,7 @@ impl TimePeriod {
     }
 }
 
-// Coalesce time periods that run together, reporting the max temperature and wind speed.
+// Coalesce time periods that run together, reporting the max temperature and wind speed
 fn coalesce(periods: Vec<&Period>) -> Vec<TimePeriod> {
     let mut tp: Vec<TimePeriod> = vec![];
     for cur in periods.into_iter() {
