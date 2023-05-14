@@ -2,9 +2,9 @@ name: weather_checker
 
 on:
   schedule:
-    - cron: '0 14 * * *' # runs at 14:00 UTC everyday
+    - cron: "0 14 * * *" # runs at 14:00 UTC everyday
   pull_request:
-    branches:    
+    branches:
       - main
 jobs:
   build:
@@ -16,7 +16,7 @@ jobs:
         with:
           toolchain: stable
       - name: do it
-        env: 
+        env:
           PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
           PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
         run: cargo run
