@@ -3,7 +3,6 @@ name = "good-days-to-bike"
 version = "0.1.0"
 edition = "2021"
 
-
 [dependencies]
 chrono = { version = "0.4.24", features = ["unstable-locales"] }
 reqwest = { version = "0.11", features = ["blocking", "json"] }

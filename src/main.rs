@@ -3,10 +3,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let noaa_url = "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly";
-    let pushover_url = "https://api.pushover.net/1/messages.json";
     let pushover_user = std::env::var("PUSHOVER_USER")?;
     let pushover_token = std::env::var("PUSHOVER_TOKEN")?;
+    let noaa_url = "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly";
+    let pushover_url = "https://api.pushover.net/1/messages.json";
 
     // fetch weather forecast
     let client = reqwest::blocking::Client::new();
