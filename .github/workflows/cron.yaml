@@ -2,20 +2,29 @@ name: weather_checker
 
 on:
   schedule:
-    - cron: '0 14 * * *' # runs at 14:00 UTC everyday
-
+    - cron: "0 14 * * *" # runs at 14:00 UTC everyday
+  pull_request:
+    branches:
+      - main
 jobs:
   build:
-    runs-on: ubuntu-latest
     environment: default
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-      - name: execute py script 
-        env: 
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Run
+        env:
           PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
           PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
-          TAKOMA_PARK_FORECAST_URL: "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly"
-        run: python weather.py $TAKOMA_PARK_FORECAST_URL $PUSHOVER_USER $PUSHOVER_TOKEN
-          
-          
+        run: cargo run
