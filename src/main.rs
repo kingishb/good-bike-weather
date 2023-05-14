@@ -1,6 +1,3 @@
-// Script to send a daily digest of weather forecasts in the next week
-// that are temperate, clear, and low-ish wind so I can plan a long bike ride.
-
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -39,7 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    // combine time periods that run together and build them into a message
+    // Combine time periods that run together and build them into a message
     let entries: Vec<String> = coalesce(periods).iter().map(|time| time.pretty()).collect();
     let msg = format!(
         "☀️Good bike times in the next 7 days☀️\n{}",
@@ -57,7 +54,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-// parse a string like "12 mph" to the number 12
+// Parse a string like "12 mph" to the number 12.
 fn parse_wind_speed(s: &str) -> u8 {
     s.split(' ')
         .next()
@@ -76,7 +73,7 @@ struct TimePeriod {
 }
 
 impl TimePeriod {
-    // pretty makes a short string to send as a text message for a weather forecast period
+    // Format a string to send as a text message for a weather forecast period.
     fn pretty(&self) -> String {
         let start = DateTime::parse_from_rfc3339(&self.start_time)
             .unwrap()
@@ -92,6 +89,7 @@ impl TimePeriod {
     }
 }
 
+// Coalesce time periods that run together, reporting the max temperature and wind speed.
 fn coalesce(periods: Vec<&Period>) -> Vec<TimePeriod> {
     let mut tp: Vec<TimePeriod> = vec![];
     for cur in periods.into_iter() {
