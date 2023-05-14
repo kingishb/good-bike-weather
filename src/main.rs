@@ -19,9 +19,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .send()?
         .json::<NOAAForecast>()?;
 
-    let mut periods = vec![];
-    // pick some times that are warm, not raining, and during the daytime
+    // Pick some times that are warm, not raining, and during the daytime
     // src: https://www.weather.gov/pqr/wind
+    let mut periods = vec![];
     // TODO: if it's above freezing, maybe try very low wind for colder months
     for period in resp.properties.periods.iter() {
         if period.is_daytime && period.probability_of_precipitation.value < 25 {
