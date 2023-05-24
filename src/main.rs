@@ -1,6 +1,9 @@
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::thread;
+use std::time::Duration;
+
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pushover_user = std::env::var("PUSHOVER_USER")?;
@@ -9,12 +12,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pushover_url = "https://api.pushover.net/1/messages.json";
 
     // fetch weather forecast
-    let client = reqwest::blocking::Client::new();
-    let resp: NOAAForecast = client
-        .get(noaa_url)
-        .header("User-Agent", "https://github.com/kingishb/good-bike-weather")
-        .send()?
-        .json::<NOAAForecast>()?;
+    let resp = get_forecast_with_retries(noaa_url)?;
 
     // Pick some times that are warm, not raining, and during the daytime
     // src: https://www.weather.gov/pqr/wind
@@ -49,9 +47,35 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     m.insert("token", pushover_token);
     m.insert("user", pushover_user);
     m.insert("message", msg);
+
+    let client = reqwest::blocking::Client::new();
     client.post(pushover_url).json(&m).send()?;
 
     Ok(())
+}
+
+// fetch weather forecast with some retries and exponential backoff
+fn get_forecast_with_retries(url: &str) -> Result<NOAAForecast, reqwest::Error> {
+    let client = reqwest::blocking::Client::new();
+    let mut i = 0;
+    loop {
+        match client.get(url).send() {
+            Ok(resp) => {
+                return resp.json::<NOAAForecast>();
+            }
+            Err(e) => {
+                if i < 3 {
+                    let exp: u64 = 2;
+                    thread::sleep(Duration::from_secs(exp.pow(i)));
+                    i+= 1;
+                    continue;
+                } else {
+                    return Err(e);
+                }
+            }
+        }
+    }
+
 }
 
 // Parse a string like "12 mph" to the number 12.
