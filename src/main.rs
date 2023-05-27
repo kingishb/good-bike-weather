@@ -4,7 +4,6 @@ use serde_json::Value;
 use std::thread;
 use std::time::Duration;
 
-
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pushover_user = std::env::var("PUSHOVER_USER")?;
     let pushover_token = std::env::var("PUSHOVER_TOKEN")?;
@@ -59,7 +58,14 @@ fn get_forecast_with_retries(url: &str) -> Result<NOAAForecast, reqwest::Error> 
     let client = reqwest::blocking::Client::new();
     let mut i = 0;
     loop {
-        match client.get(url).send() {
+        match client
+            .get(url)
+            .header(
+                "user-agent",
+                "https://github.com/kingishb/good-days-to-bike",
+            )
+            .send()
+        {
             Ok(resp) => {
                 return resp.json::<NOAAForecast>();
             }
@@ -67,7 +73,7 @@ fn get_forecast_with_retries(url: &str) -> Result<NOAAForecast, reqwest::Error> 
                 if i < 3 {
                     let exp: u64 = 2;
                     thread::sleep(Duration::from_secs(exp.pow(i)));
-                    i+= 1;
+                    i += 1;
                     continue;
                 } else {
                     return Err(e);
@@ -75,7 +81,6 @@ fn get_forecast_with_retries(url: &str) -> Result<NOAAForecast, reqwest::Error> 
             }
         }
     }
-
 }
 
 // Parse a string like "12 mph" to the number 12.
@@ -156,93 +161,93 @@ fn coalesce(periods: Vec<&Period>) -> Vec<TimePeriod> {
 // Created with JSON to Serde: https://transform.tools/json-to-rust-serde
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct NOAAForecast {
+struct NOAAForecast {
     #[serde(rename = "@context")]
-    pub context: (String, Context),
+    context: (String, Context),
     #[serde(rename = "type")]
-    pub type_field: String,
-    pub geometry: Geometry,
-    pub properties: Properties,
+    type_field: String,
+    geometry: Geometry,
+    properties: Properties,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Context {
+struct Context {
     #[serde(rename = "@version")]
-    pub version: String,
-    pub wx: String,
-    pub geo: String,
-    pub unit: String,
+    version: String,
+    wx: String,
+    geo: String,
+    unit: String,
     #[serde(rename = "@vocab")]
-    pub vocab: String,
+    vocab: String,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Geometry {
+struct Geometry {
     #[serde(rename = "type")]
-    pub type_field: String,
-    pub coordinates: Vec<Vec<Vec<f64>>>,
+    type_field: String,
+    coordinates: Vec<Vec<Vec<f64>>>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Properties {
-    pub updated: String,
-    pub units: String,
-    pub forecast_generator: String,
-    pub generated_at: String,
-    pub update_time: String,
-    pub valid_times: String,
-    pub elevation: Elevation,
-    pub periods: Vec<Period>,
+struct Properties {
+    updated: String,
+    units: String,
+    forecast_generator: String,
+    generated_at: String,
+    update_time: String,
+    valid_times: String,
+    elevation: Elevation,
+    periods: Vec<Period>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Elevation {
-    pub unit_code: String,
-    pub value: f64,
+struct Elevation {
+    unit_code: String,
+    value: f64,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Period {
-    pub number: i64,
-    pub name: String,
-    pub start_time: String,
-    pub end_time: String,
-    pub is_daytime: bool,
-    pub temperature: i64,
-    pub temperature_unit: String,
-    pub temperature_trend: Value,
-    pub probability_of_precipitation: ProbabilityOfPrecipitation,
-    pub dewpoint: Dewpoint,
-    pub relative_humidity: RelativeHumidity,
-    pub wind_speed: String,
-    pub wind_direction: String,
-    pub icon: String,
-    pub short_forecast: String,
-    pub detailed_forecast: String,
+struct Period {
+    number: i64,
+    name: String,
+    start_time: String,
+    end_time: String,
+    is_daytime: bool,
+    temperature: i64,
+    temperature_unit: String,
+    temperature_trend: Value,
+    probability_of_precipitation: ProbabilityOfPrecipitation,
+    dewpoint: Dewpoint,
+    relative_humidity: RelativeHumidity,
+    wind_speed: String,
+    wind_direction: String,
+    icon: String,
+    short_forecast: String,
+    detailed_forecast: String,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ProbabilityOfPrecipitation {
-    pub unit_code: String,
-    pub value: i64,
+struct ProbabilityOfPrecipitation {
+    unit_code: String,
+    value: i64,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Dewpoint {
-    pub unit_code: String,
-    pub value: f64,
+struct Dewpoint {
+    unit_code: String,
+    value: f64,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct RelativeHumidity {
-    pub unit_code: String,
-    pub value: i64,
+struct RelativeHumidity {
+    unit_code: String,
+    value: i64,
 }
