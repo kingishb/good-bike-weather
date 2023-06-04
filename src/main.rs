@@ -53,6 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+
 // fetch weather forecast with some retries and exponential backoff
 fn get_forecast_with_retries(url: &str) -> Result<NOAAForecast, reqwest::Error> {
     let client = reqwest::blocking::Client::new();
@@ -66,9 +67,19 @@ fn get_forecast_with_retries(url: &str) -> Result<NOAAForecast, reqwest::Error> 
             )
             .send()
         {
-            Ok(resp) => {
-                return resp.json::<NOAAForecast>();
-            }
+            Ok(resp) => match resp.json::<NOAAForecast>() {
+                Ok(v) => return Ok(v),
+                Err(e) => {
+                    if i < 3 {
+                        let exp: u64 = 2;
+                        thread::sleep(Duration::from_secs(exp.pow(i)));
+                        i += 1;
+                        continue;
+                    } else {
+                        return Err(e);
+                    }
+                }
+            },
             Err(e) => {
                 if i < 3 {
                     let exp: u64 = 2;
