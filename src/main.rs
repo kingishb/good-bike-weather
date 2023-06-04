@@ -59,27 +59,17 @@ fn get_forecast_with_retries(url: &str) -> Result<NOAAForecast, reqwest::Error> 
     let client = reqwest::blocking::Client::new();
     let mut i = 0;
     loop {
-        match client
+        let resp =  client
             .get(url)
             .header(
                 "user-agent",
                 "https://github.com/kingishb/good-days-to-bike",
             )
-            .send()
+            .send()?;
+
+            match resp.json::<NOAAForecast>()
         {
-            Ok(resp) => match resp.json::<NOAAForecast>() {
-                Ok(v) => return Ok(v),
-                Err(e) => {
-                    if i < 3 {
-                        let exp: u64 = 2;
-                        thread::sleep(Duration::from_secs(exp.pow(i)));
-                        i += 1;
-                        continue;
-                    } else {
-                        return Err(e);
-                    }
-                }
-            },
+            Ok(v) => return Ok(v), 
             Err(e) => {
                 if i < 3 {
                     let exp: u64 = 2;
