@@ -7,6 +7,7 @@ use std::time::Duration;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pushover_user = std::env::var("PUSHOVER_USER")?;
     let pushover_token = std::env::var("PUSHOVER_TOKEN")?;
+    // takoma park md
     let noaa_url = "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly";
     let pushover_url = "https://api.pushover.net/1/messages.json";
 
@@ -36,7 +37,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Combine time periods that run together and build them into a message
     let entries: Vec<String> = coalesce(periods).iter().map(|time| time.pretty()).collect();
     let msg = format!(
-        "☀️Good bike times in the next 7 days☀️\n{}",
+        "☀️ 🚲Good bike times in the next 7 days☀️🚲\n{}",
         entries.join("\n")
     );
     println!("{}", msg);
@@ -53,13 +54,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-
 // fetch weather forecast with some retries and exponential backoff
 fn get_forecast_with_retries(url: &str) -> Result<NOAAForecast, reqwest::Error> {
     let client = reqwest::blocking::Client::new();
     let mut i = 0;
     loop {
-        let resp =  client
+        let resp = client
             .get(url)
             .header(
                 "user-agent",
@@ -67,9 +67,8 @@ fn get_forecast_with_retries(url: &str) -> Result<NOAAForecast, reqwest::Error> 
             )
             .send()?;
 
-            match resp.json::<NOAAForecast>()
-        {
-            Ok(v) => return Ok(v), 
+        match resp.json::<NOAAForecast>() {
+            Ok(v) => return Ok(v),
             Err(e) => {
                 if i < 3 {
                     let exp: u64 = 2;
@@ -107,13 +106,13 @@ impl TimePeriod {
     fn pretty(&self) -> String {
         let start = DateTime::parse_from_rfc3339(&self.start_time)
             .unwrap()
-            .format("%A, %B %d %I:%M%p");
+            .format("%A %I:%M%p");
         let end = DateTime::parse_from_rfc3339(&self.end_time)
             .unwrap()
             .format("%I:%M%p");
 
         format!(
-            "🚲 {0} - {1} temp {2}F precipitation {3}% wind speed {4} mph",
+            "{0} - {1} tmp {2}F precip {3}% wind {4} mph",
             start, end, self.temp, self.probability_of_precipitation, self.max_wind_speed
         )
     }
