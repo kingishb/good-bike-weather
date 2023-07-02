@@ -48,7 +48,7 @@ fn main() -> Result<()> {
     let mut m = std::collections::HashMap::new();
     m.insert("token", pushover_token);
     m.insert("user", pushover_user);
-    m.insert("mlssage", msg);
+    m.insert("message", msg);
 
     let client = reqwest::blocking::Client::new();
     client.post(pushover_url).json(&m).send().context("error pushing alert")?;
