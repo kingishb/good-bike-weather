@@ -2,7 +2,7 @@ name: weather_checker
 
 on:
   schedule:
-    - cron: "0 14 * * *" # runs at 14:00 UTC everyday
+    - cron: "7 14 * * *" # runs at 14:07 UTC everyday
 jobs:
   build:
     environment: default
