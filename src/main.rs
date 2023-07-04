@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 use chrono::prelude::*;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::thread;
@@ -7,8 +8,7 @@ use std::time::Duration;
 
 fn main() -> Result<()> {
     let pushover_user = std::env::var("PUSHOVER_USER").context("PUSHOVER_USER missing")?;
-    let pushover_token =
-        std::env::var("PUSHOVER_TOKEN").context("PUSHOVER_TOKEN missing")?;
+    let pushover_token = std::env::var("PUSHOVER_TOKEN").context("PUSHOVER_TOKEN missing")?;
     // takoma park md
     let noaa_url = "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly";
     let pushover_url = "https://api.pushover.net/1/messages.json";
@@ -51,7 +51,11 @@ fn main() -> Result<()> {
     m.insert("message", msg);
 
     let client = reqwest::blocking::Client::new();
-    client.post(pushover_url).json(&m).send().context("error pushing alert")?;
+    client
+        .post(pushover_url)
+        .json(&m)
+        .send()
+        .context("error pushing alert")?;
 
     Ok(())
 }
@@ -60,6 +64,8 @@ fn main() -> Result<()> {
 fn get_forecast_with_retries(url: &str) -> Result<NOAAForecast, reqwest::Error> {
     let client = reqwest::blocking::Client::new();
     let mut i = 0;
+    let mut rng = rand::thread_rng();
+
     loop {
         let resp = client
             .get(url)
@@ -72,9 +78,12 @@ fn get_forecast_with_retries(url: &str) -> Result<NOAAForecast, reqwest::Error> 
         match resp.json::<NOAAForecast>() {
             Ok(v) => return Ok(v),
             Err(e) => {
-                if i < 3 {
+                if i < 5 {
                     let exp: u64 = 2;
-                    thread::sleep(Duration::from_secs(exp.pow(i)));
+                    let backoff = exp.pow(i);
+                    let jitter = rng.gen_range(0..backoff);
+
+                    thread::sleep(Duration::from_secs(jitter));
                     i += 1;
                     continue;
                 } else {
