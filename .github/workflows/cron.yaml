@@ -8,34 +8,10 @@ jobs:
     environment: default
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cargo Target Cache
-        uses: actions/cache@v1
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-target-${{ hashFiles('Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-target-${{ hashFiles('Cargo.toml') }}
-            ${{ runner.os }}-cargo-target
-
-      - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-
+      - uses: actions/checkout@v3
+      - uses: oven-sh/setup-bun@v1
       - name: Run
         env:
           PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
           PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
-        run: cargo run
+        run: bun main.js
