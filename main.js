@@ -1,5 +1,7 @@
 const noaa = "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly";
 const pushover = "https://api.pushover.net/1/messages.json";
+const fmt = (date) => new Date(Date.parse(date)).toLocaleString();
+const time = (date) => fmt(date).split(",")[1];
 const temperate = (await (await fetch(noaa)).json()).properties.periods.filter(
   (p) =>
     p.isDaytime &&
@@ -21,7 +23,7 @@ for (const p of temperate) {
   num = p.number;
 }
 const times = consolidated
-  .map((p) => `${p.startTime} - ${p.endTime}`)
+  .map((p) => `${fmt(p.startTime)} to${time(p.endTime)}`)
   .join("\n");
 const msg = `bike times 🚲
 ${times}`;
