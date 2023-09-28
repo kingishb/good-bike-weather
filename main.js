@@ -11,9 +11,8 @@ async function retry(fn, n) {
     } catch (err) {
       console.log(err);
     }
-    const backoff = Math.floor(Math.random() * 2 ** i);
+    const backoff = 1000 * Math.floor(Math.random() * 2 ** i);
     await new Promise((r) => setTimeout(r, backoff));
-
   }
 }
 
