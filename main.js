@@ -10,23 +10,23 @@ const temperate = (await (await fetch(noaa)).json()).properties.periods.filter(
     parseInt(p.windSpeed.split(" ")[0]) < 13
 );
 
-const consolidated = [];
+const blocks = [];
 let num = temperate.length === 0 ? temperate[0].number : 0;
 for (const p of temperate) {
   if (p.number === num + 1) {
-    const last = consolidated.pop();
+    const last = blocks.pop();
     last.endTime = p.endTime;
-    consolidated.push(last);
+    blocks.push(last);
   } else {
-    consolidated.push(p);
+    blocks.push(p);
   }
   num = p.number;
 }
-const times = consolidated
+const schedule = blocks
   .map((p) => `${fmt(p.startTime)} to${time(p.endTime)}`)
   .join("\n");
 const msg = `bike times 🚲
-${times}`;
+${schedule}`;
 
 await fetch(pushover, {
   method: "POST",
