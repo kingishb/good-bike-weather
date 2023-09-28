@@ -28,7 +28,6 @@ const times = consolidated
 const msg = `bike times 🚲
 ${times}`;
 
-console.log(msg);
 await fetch(pushover, {
   method: "POST",
   headers: { "content-type": "application/json" },
