@@ -59,18 +59,18 @@ def run():
 
     msg = f"bike times 🚲\n{schedule}"
     print(msg)
-
-    headers = {"content-type": "application/json"}
-
-    payload = json.dumps(
-        {
-            "token": os.environ.get("PUSHOVER_TOKEN"),
-            "user": os.environ.get("PUSHOVER_USER"),
-            "message": msg,
-        }
-    ).encode("utf-8")
-
-    req = urllib.request.Request(pushover, data=payload, headers=headers, method="POST")
+    req = urllib.request.Request(
+        pushover,
+        data=json.dumps(
+            {
+                "token": os.environ.get("PUSHOVER_TOKEN"),
+                "user": os.environ.get("PUSHOVER_USER"),
+                "message": msg,
+            }
+        ).encode("utf-8"),
+        headers={"content-type": "application/json"},
+        method="POST",
+    )
     with urllib.request.urlopen(req) as response:
         print(response.status_code)
 
