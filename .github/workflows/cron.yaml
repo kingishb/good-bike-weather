@@ -1,19 +1,20 @@
-name: weather_checker
-
 on:
   schedule:
     - cron: "7 14 * * *" # runs at 14:07 UTC everyday
+
 jobs:
   build:
     environment: default
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-      - name: Run
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: "3.11"
+      - name: Run
         env:
           PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
           PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
         run: python main.py
+
