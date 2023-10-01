@@ -61,6 +61,7 @@ def run():
 
     msg = f"bike times 🚲\n{schedule}"
     print(msg)
+
     req = urllib.request.Request(
         pushover,
         data=json.dumps(
@@ -74,7 +75,7 @@ def run():
         method="POST",
     )
     with urllib.request.urlopen(req) as response:
-        print(response.status_code)
+        print("message sent")
 
 
 retry(run, 3)
