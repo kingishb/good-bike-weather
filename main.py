@@ -1,20 +1,22 @@
-import datetime
 import json
 import os
 import random
 import time
 import urllib.request
 
+from datetime import datetime
+
+
 noaa = "https://api.weather.gov/gridpoints/LWX/97,75/forecast/hourly"
 pushover = "https://api.pushover.net/1/messages.json"
 
 
 def fmt_date(d):
-    return datetime.datetime.fromisoformat(d).strftime("%a %I:%M %p")
+    return datetime.fromisoformat(d).strftime("%a %I:%M %p")
 
 
 def fmt_time(d):
-    return datetime.datetime.fromisoformat(d).strftime("%I:%M %p")
+    return datetime.fromisoformat(d).strftime("%I:%M %p")
 
 
 def retry(fn, n):
